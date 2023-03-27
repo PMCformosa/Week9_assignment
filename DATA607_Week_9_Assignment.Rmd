@@ -1,0 +1,114 @@
+---
+title: "DATA607_week9"
+author: "Pei-Ming Chen"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+DATA607 Week 9  Assignment 
+The New York Times web site provides a rich set of APIs, as described here: https://developer.nytimes.com/apis You’ll need to start by signing up for an API key.  Your task is to choose one of the New York Times APIs, construct an interface in R to read in the JSON data, and transform it into an R DataFrame. 
+
+```{r}
+#install.packages("rjson")
+#install.packages("keyring")
+```
+
+### Exercise 1
+
+```{r }
+library("jsonlite")
+library("tidyverse")
+library("dplyr")
+library("ggplot2")
+library("stringr")
+library("httr")
+library("keyring")
+```
+
+
+### Exercise 2
+
+Insert any text here.
+
+```{r }
+# API Key
+apikey <- "7ZbUeHfGPlUloCbyBLhJZmjo5DfAyyUo"
+
+#Get the URL 
+theURL <- paste("https://api.nytimes.com/svc/topstories/v2/books.json?api-key=7ZbUeHfGPlUloCbyBLhJZmjo5DfAyyUo")
+
+dataA <- GET(theURL)
+dataA
+
+dataA$status_code
+```
+
+### Exercise 3
+
+```{r}
+summary(dataA)
+
+```
+### Exercise 4
+
+```{r}
+Bookstext <- content(dataA, as = "text")
+```
+
+### Data Frame
+
+```{r}
+Books_text_df <- Bookstext %>% 
+  fromJSON() %>% 
+  as.data.frame()
+
+colnames(Books_text_df)
+
+```
+### Rename columnes 
+
+```{r}
+colnames(Books_text_df) = c("Status", "Copyright", "Section", "Updated","Number_of_results", "Res_Section", "subsection", "Title", "abstract", "Url", "Uri", "byline", "item_type", "updated_date", "created_date","published_date", "material_type_facet", "kicker", "des_facet", "org_facet", "per_facet", "geo_facet", "multimedia", "short_url")
+
+colnames(Books_text_df)
+```
+
+```{r}
+Number_of_results <- Books_text_df %>%
+  group_by(Number_of_results) %>%
+  summarise(num=n()) %>%
+  arrange(desc(num))
+head(Number_of_results)
+  
+```
+
+
+
+###  Types and number of byline of the 34 articles were plotted below
+
+```{r}
+byline <- Books_text_df %>%
+  group_by(byline) %>%
+  summarise(num=n()) %>%
+  arrange(desc(num))
+byline
+
+Books_text_df %>% ggplot(aes(y = byline)) + geom_bar()
+```
+
+### Abstracts of the 34 four articles were listed in a table below
+
+```{r}
+abstract <- Books_text_df %>%
+  group_by(abstract) %>%
+  summarise(num=n()) %>%
+  arrange(desc(num))
+head(abstract)
+abstract
+
+  
+```
+
